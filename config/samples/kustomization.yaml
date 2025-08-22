@@ -1,0 +1,5 @@
+## Append samples of your project ##
+resources:
+- simreq_v1_simrequest.yaml
+- catrdg_v1_cartridge.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

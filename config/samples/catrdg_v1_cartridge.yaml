@@ -1,0 +1,147 @@
+apiVersion: catrdg.cnri.platform/v1
+kind: Cartridge
+metadata:
+  labels:
+    app.kubernetes.io/name: grid-launcher
+    app.kubernetes.io/managed-by: kustomize
+  name: cartridge-lab-v2
+spec:
+  description: "This simalation is for demonstration purpose. \nIt provides simplly controlled environment containing two groups, training group and server group. \nSo the user is able to get access to the vm by vdi in browser."
+  display_name: Get Foxed
+  hosts:
+    - baseImage: cloudrangecyber/pfsense:20250701_base
+      condition: if firewall_type = pfSense
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - pfsense
+        - firewall
+      name: DMZ_Firewall
+      networks:
+        - name: server-net
+          interface: eth1
+          address: 192.168.200.254
+        - name: user-net
+          interface: eth2
+          address: 192.168.100.254
+        - name: siem-net
+          interface: eth3
+          address: 192.168.66.254
+    - baseImage: cloudrangecyber/ubuntu:20250701_base
+      condition: if siem = Splunk
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - linux
+        - splunk
+        - siem
+      name: HN-Splunk
+      networks:
+        - name: siem-net
+          interface: eth1
+          address: 192.168.66.50
+    - baseImage: cloudrangecyber/windows11:20250701_base
+      condition: for Observers
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - windows
+        - observer_workstation
+      name: HN-Observer
+      networks:
+        - name: siem-net
+          interface: eth1
+          address: dhcp
+    - baseImage: cloudrangecyber/windows11:20250701_base
+      condition: for Trainers
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - windows
+        - trainer_workstation
+      name: HN-Trainer
+      networks:
+        - name: soc-net
+          interface: eth1
+          address: dhcp
+    - baseImage: cloudrangecyber/winserver2016:20250701_base
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - windows
+        - ad_domain_controller
+      name: HN-DC01
+      networks:
+        - name: server-net
+          interface: eth1
+          address: 192.168.200.1
+    - baseImage: cloudrangecyber/winserver2016:20250701_base
+      disk: 20Gb
+      instanceType: u1.xlarge
+      labels:
+        - windows
+        - exchange
+      name: HN-Exchange
+      networks:
+        - name: server-net
+          interface: eth1
+          address: 192.168.200.10
+  logo: null
+  networks:
+    - cidrBlock: 192.168.200.0/24
+      gateway: 192.168.200.254
+      name: server-net
+      protocol: IPv4
+    - cidrBlock: 192.168.100.0/24
+      gateway: 192.168.100.254
+      name: user-net
+      protocol: IPv4
+    - cidrBlock: 192.168.66.0/24
+      gateway: 192.168.66.254
+      name: siem-net
+      protocol: IPv4
+  playbooks: |
+    playbook1:
+      - name: Ansible Playbook Demo - Confirm Execution on VM
+        hosts: all
+        become: true
+        gather_facts: no
+        tasks:
+          - name: Wait for SSH connection to be available
+            wait_for_connection:
+              timeout: 300
+            tags:
+              - linux
+          - name: Create a demo file indicating playbook was run
+            copy:
+              dest: /tmp/ansible_ran.txt
+              content: "Ansible ran successfully by Grid system"
+            tags:
+              - linux
+          - name: Update login banner to show playbook was executed
+            copy:
+              dest: /etc/motd
+              content: |
+                Ansible Playbook was executed by Grid system!!!
+            tags:
+              - linux
+          - name: Notify Grid Operator that configuration is complete
+            uri:
+              url: http://[[ .controller_domain ]]:1323/api/v1/grid/vm/status
+              method: POST
+              headers:
+                Content-Type: "application/json"
+              body: |
+                {
+                  "namespace": "[[ .namespace ]]",
+                  "vmi_name": "condition: inventory_hostname ",
+                  "status": "Configuration Complete"
+                }
+              body_format: json
+              return_content: yes
+              status_code: 200
+            register: notify_result
+          - debug:
+              var: notify_result
+    playbook2:.....
+  values: "firewall_type: [pfSense,paloAlto,Juniper,Cisco]\nsiem: [Splunk,SecOnion] \nTrainers:\n  - trainer1@domain.com\nObservers:\n  - observer1@domain.com\nSOC_Analyst:\n  - trainee1@domain.com\n"

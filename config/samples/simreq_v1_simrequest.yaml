@@ -1,0 +1,9 @@
+apiVersion: simreq.cnri.platform/v1
+kind: SimRequest
+metadata:
+  labels:
+    app.kubernetes.io/name: grid-launcher
+    app.kubernetes.io/managed-by: kustomize
+  name: simrequest-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,27 @@
+# permissions for end users to edit cartridges.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: grid-launcher
+    app.kubernetes.io/managed-by: kustomize
+  name: catrdg-cartridge-editor-role
+rules:
+- apiGroups:
+  - catrdg.cnri.platform
+  resources:
+  - cartridges
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - catrdg.cnri.platform
+  resources:
+  - cartridges/status
+  verbs:
+  - get

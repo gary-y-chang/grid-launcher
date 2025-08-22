@@ -1,0 +1,27 @@
+apiVersion: simreq.cnri.platform/v1
+kind: SimRequest
+metadata:
+  labels:
+    app.kubernetes.io/name: grid-simulation
+    app.kubernetes.io/managed-by: kustomize
+  name: simreq-lab-v2
+  finalizers:
+    - simulation.cnri.platform/simrequest
+spec:
+  grid: grid-4
+  cartridge_name: cartridge-lab-v2
+  simulation: laboratory simulation on cartridge dev-lab
+  values: |-
+    firewall_type: pfSense
+    siem: Splunk
+    Trainers:
+      - user1@seeder.com
+      - user2@seeder.com
+    Observers:
+      - observer1@domain.com
+      - observer2@domain.com
+      - observer3@domain.com
+    SOC_Analyst:
+      - analyst1@soc.com
+      - analyst2@soc.com  
+

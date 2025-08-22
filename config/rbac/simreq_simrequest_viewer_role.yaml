@@ -1,0 +1,23 @@
+# permissions for end users to view simrequests.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: grid-launcher
+    app.kubernetes.io/managed-by: kustomize
+  name: simreq-simrequest-viewer-role
+rules:
+- apiGroups:
+  - simreq.cnri.platform
+  resources:
+  - simrequests
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - simreq.cnri.platform
+  resources:
+  - simrequests/status
+  verbs:
+  - get
